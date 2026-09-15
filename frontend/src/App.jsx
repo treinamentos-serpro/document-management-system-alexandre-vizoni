@@ -12,13 +12,13 @@ export default function App() {
 
   const refreshDocuments = useCallback(async () => {
     try {
-      const data = await listDocuments();
+      const data = await listDocuments(owner);
       setDocuments(data);
       setError('');
     } catch (listError) {
       setError(listError.message);
     }
-  }, []);
+  }, [owner]);
 
   useEffect(() => {
     refreshDocuments();
@@ -40,7 +40,7 @@ export default function App() {
 
       {error && <p role="alert">{error}</p>}
 
-      <DocumentList documents={documents} />
+      <DocumentList documents={documents} owner={owner} />
     </main>
   );
 }

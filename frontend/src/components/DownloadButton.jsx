@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { downloadDocument } from '../services/api';
 
 // Baixa o documento via fetch e dispara o download no navegador com o nome original.
-export default function DownloadButton({ documentId, fileName }) {
+export default function DownloadButton({ documentId, fileName, owner }) {
   const [isDownloading, setIsDownloading] = useState(false);
   const [error, setError] = useState('');
 
@@ -10,7 +10,7 @@ export default function DownloadButton({ documentId, fileName }) {
     setIsDownloading(true);
     setError('');
     try {
-      const blob = await downloadDocument(documentId);
+      const blob = await downloadDocument(documentId, owner);
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;

@@ -2,8 +2,24 @@
 
 const crypto = require('node:crypto');
 const documentRepository = require('../repositories/documentRepository');
+const { resolveFilePath } = require('../repositories/fileStorage');
 
-class DocumentNotFoundError extends Error {}
+// Erros de domínio carregam o statusCode para o middleware de erro do app.js.
+class DocumentNotFoundError extends Error {
+  constructor(message) {
+    super(message);
+    this.name = 'DocumentNotFoundError';
+    this.statusCode = 404;
+  }
+}
+
+class DocumentAccessDeniedError extends Error {
+  constructor(message) {
+    super(message);
+    this.name = 'DocumentAccessDeniedError';
+    this.statusCode = 403;
+  }
+}
 
 function registerUpload(file, owner) {
   const document = {
@@ -18,21 +34,25 @@ function registerUpload(file, owner) {
   return documentRepository.save(document);
 }
 
-function listDocuments() {
-  return documentRepository.findAll();
+function listDocumentsByOwner(owner) {
+  return documentRepository.findAll().filter((document) => document.owner === owner);
 }
 
-function getDocumentById(id) {
+function getDocumentForDownload(id, owner) {
   const document = documentRepository.findById(id);
   if (!document) {
     throw new DocumentNotFoundError(`Documento ${id} não encontrado`);
   }
-  return document;
+  if (document.owner !== owner) {
+    throw new DocumentAccessDeniedError('Você não tem permissão para baixar este documento');
+  }
+  return { document, filePath: resolveFilePath(document.storedName) };
 }
 
 module.exports = {
   registerUpload,
-  listDocuments,
-  getDocumentById,
+  listDocumentsByOwner,
+  getDocumentForDownload,
   DocumentNotFoundError,
+  DocumentAccessDeniedError,
 };

@@ -11,6 +11,7 @@
 // usando multer com diskStorage. Não utilize provedores externos.
 
 const express = require('express');
+const multer = require('multer');
 const documentRoutes = require('./routes/documentRoutes');
 
 const app = express();
@@ -25,10 +26,13 @@ app.get('/health', (req, res) => {
 
 app.use(documentRoutes);
 
-// Trata erros não previstos nos controllers, mantendo a resposta em JSON.
+// Mapeia erros de domínio (statusCode) e falhas do multer para respostas JSON consistentes.
 app.use((err, req, res, next) => {
-  console.error(err);
-  res.status(500).json({ error: 'Erro interno do servidor' });
+  const statusCode = err.statusCode || (err instanceof multer.MulterError ? 400 : 500);
+  if (statusCode >= 500) {
+    console.error(err);
+  }
+  res.status(statusCode).json({ error: err.message || 'Erro interno do servidor' });
 });
 
 if (require.main === module) {

@@ -5,6 +5,7 @@ const path = require('node:path');
 const multer = require('multer');
 
 const STORAGE_DIR = path.join(__dirname, '..', '..', 'storage');
+const MAX_FILE_SIZE_BYTES = 20 * 1024 * 1024;
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -16,6 +17,11 @@ const storage = multer.diskStorage({
   },
 });
 
-const upload = multer({ storage });
+const upload = multer({ storage, limits: { fileSize: MAX_FILE_SIZE_BYTES } });
 
-module.exports = { upload, STORAGE_DIR };
+// Único ponto que conhece onde os arquivos ficam gravados em disco.
+function resolveFilePath(storedName) {
+  return path.join(STORAGE_DIR, storedName);
+}
+
+module.exports = { upload, resolveFilePath };
